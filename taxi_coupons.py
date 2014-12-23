@@ -8,6 +8,7 @@ import os
 import logging
 
 def getCoupons (origin_url):
+	origin_url = origin_url.strip(' ').replace(' ', "");
 	print "[ INF ] Url = " + origin_url
 	logging.info("Url = " + origin_url)
 	if ( not origin_url.startswith("http://")):
@@ -28,6 +29,7 @@ def getCoupons (origin_url):
 		sys.exit()
 
 	file = open("taxi_coupons.conf")
+	resultCodes = []
 	while 1:
 		number = file.readline();
 		if not number:
@@ -98,7 +100,7 @@ def getCoupons (origin_url):
 		# print "Respone =", resultStatus
 		content = respones.read()
 		conn.close()
-		# print content
+		# print contentcat 
 		if (resultStatus == 200):
 			try:
 				json_content = json.loads(content);
@@ -111,17 +113,22 @@ def getCoupons (origin_url):
 				else:
 					print "[ ERR ] Failed because : " + json_content["msg"];
 					logging.error("Failed because : " + json_content["msg"]);
+				resultCodes.append(json_content["code"])
 			except:
 				print "[ ERR ] Server returned error page : " + content
 				logging.error("Server returned error page : " + content)
+				resultCodes.append(-1)
 		else:
 			print "[ INF ] Server returned error status : " + resultStatus
 			logging.info("Server returned error status : " + resultStatus)
+			resultCodes.append(-1)
 		# print content
 		# print respones.getheaders();
 		# conn.requeset('POST','url',headers=headers)
 		# params=urllib.urlencode({'key':'value'});
 		# conn.request('POST','url',body=params)
+
+	return resultCodes
 
 if __name__ == "__main__":
 	logging.basicConfig(level = logging.DEBUG,
