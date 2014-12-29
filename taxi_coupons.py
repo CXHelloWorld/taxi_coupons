@@ -6,6 +6,8 @@ import json
 import sys
 import os
 import logging
+import traceback
+import random
 
 def getCoupons (origin_url):
 	origin_url = origin_url.strip(' ').replace(' ', "");
@@ -53,6 +55,9 @@ def getCoupons (origin_url):
 		resultStatus = result.status
 		# print "Respone =", resultStatus
 		content = result.read()
+		headers = {}
+		for header in result.getheaders():
+			headers[header[0]] = header[1]
 		# conn.close()
 
 		token_prefix = 'type=\"hidden\" name=\"token\" id=\"token\" value=\"'
@@ -81,6 +86,13 @@ def getCoupons (origin_url):
 		coupon_url = coupon_url + "&mobile=" + number + "&_=" + bytes(int (time.time() * 1000));
 		# print coupon_url
 
+		# get 1 yuan if you too fast
+		time.sleep(random.uniform(8, 16))
+
+		setCookie = headers['set-cookie']
+		random_issue_voucher_timer = setCookie[setCookie.index('random_issue_voucher_timer'):]
+		random_issue_voucher_timer = random_issue_voucher_timer[:random_issue_voucher_timer.index(';')]
+		# print random_issue_voucher_timer
 		# conn = httplib.HTTPConnection(domain)
 		headers={ "Accept":"*/*", \
 			"Accept-Encoding":"gzip, deflate", \
@@ -88,6 +100,7 @@ def getCoupons (origin_url):
 			"Connection":"keep-alive", \
 			"Content-Length":"0", \
 			"Content-Type":"application/x-www-form-urlencoded", \
+			"Cookie":random_issue_voucher_timer, \
 			"Host":domain, \
 			"Origin":"http://" + domain, \
 			"Referer":origin_url, \
@@ -100,7 +113,7 @@ def getCoupons (origin_url):
 		# print "Respone =", resultStatus
 		content = respones.read()
 		conn.close()
-		# print contentcat 
+		# print content
 		if (resultStatus == 200):
 			try:
 				json_content = json.loads(content);
@@ -111,10 +124,13 @@ def getCoupons (origin_url):
 					print "[ INF ] You have already get : " + json_content["parameters"]["presentValue"];
 					logging.info("You have already get : " + json_content["parameters"]["presentValue"]);
 				else:
-					print "[ ERR ] Failed because : " + json_content["msg"];
-					logging.error("Failed because : " + json_content["msg"]);
+					print "[ ERR ] Failed because : " + content;
+					logging.error("Failed because : " + content);
 				resultCodes.append(json_content["code"])
-			except:
+			except Exception, e:
+				print content
+				print e;
+				print (traceback.format_exc())
 				print "[ ERR ] Server returned error page : " + content
 				logging.error("Server returned error page : " + content)
 				resultCodes.append(-1)
@@ -127,6 +143,8 @@ def getCoupons (origin_url):
 		# conn.requeset('POST','url',headers=headers)
 		# params=urllib.urlencode({'key':'value'});
 		# conn.request('POST','url',body=params)
+
+		time.sleep(random.uniform(0, 2))
 
 	return resultCodes
 

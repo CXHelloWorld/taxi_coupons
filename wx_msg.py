@@ -90,10 +90,14 @@ class wx_msg(object):
 		self.fromUserName = root.find("FromUserName").text
 		self.createTime = root.find("CreateTime").text
 		self.msgType = root.find("MsgType").text
-		self.msgId = root.find("MsgId").text
+
+		if (self.msgType == "event"):
+			self.event = root.find("Event").text
+			self.eventKey = root.find("EventKey").text
 
 		if (self.msgType == "text"):
 			self.content = root.find("Content").text
+			self.msgId = root.find("MsgId").text
 
 	def parseFromXMLFile(self, xmlFile):
 		self.parseFromXMLString(open(xmlFile).read())
